@@ -3,7 +3,7 @@ package com.company;
 import java.util.ArrayList;
 
 public class DirectionalLight extends Light{
-    private ArrayList<Double> direction;
+    private final ArrayList<Double> direction;
     public DirectionalLight(double intensity, ArrayList<Double> direction) {
         super(intensity);
         this.direction = direction;

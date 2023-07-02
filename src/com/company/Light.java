@@ -3,7 +3,7 @@ package com.company;
 import java.util.ArrayList;
 
 public class Light {
-    protected double intensity;
+    protected final double intensity;
     public Light(double intensity){
         this.intensity = intensity;
     }

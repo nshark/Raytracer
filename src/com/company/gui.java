@@ -4,8 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class gui {
-    public JFrame jFrame;
-    public Canvas canvas;
+    public final JFrame jFrame;
+    public final Canvas canvas;
     public Graphics2D g;
     public gui(){
         jFrame = new JFrame("Raytracer");

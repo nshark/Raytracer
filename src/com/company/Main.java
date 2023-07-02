@@ -79,7 +79,7 @@ public class Main {
         ArrayList<Double> point = addVectors(cameraPos, scaleVector(ray.direction, info.closest_t()));
         ArrayList<Double> normal = subVectors(point, info.collider().getCenter());
         normal = normalizeVector(normal);
-        float lightAtPoint = (float) computeLighting(point,normal,scaleVector(ray.direction,-1d),info.collider().getSpecular(),lights,objects, recursion_depth);
+        float lightAtPoint = (float) computeLighting(point,normal,scaleVector(ray.direction,-1d),info.collider().getSpecular(),lights,objects);
         var color = info.collider().getColor();
         var local_color = new Color(getScaledColor(color.getRed(),lightAtPoint),
                 getScaledColor(color.getGreen(),lightAtPoint),
@@ -121,7 +121,7 @@ public class Main {
         }
         return new intersectionInfo(closest_t, closestObject);
     }
-    public static double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<Light> lights, ArrayList<renderable> objects, int recursion_depth){
+    public static double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<Light> lights, ArrayList<renderable> objects){
         double returnValue = 0;
         for(Light l : lights){
             returnValue += l.computeLighting(point, normal, v, specular, objects);
@@ -132,7 +132,6 @@ public class Main {
         return Math.max(0,Math.min(255,Math.round(colorValue*lightAtPoint)));
     }
     public static ArrayList<Double> ReflectRay(ArrayList<Double> direction, ArrayList<Double> normal) {
-        ArrayList<Double> R = Main.subVectors(Main.scaleVector(normal,2*Main.dotProduct(normal, direction)), direction);
-        return R;
+        return Main.subVectors(Main.scaleVector(normal,2*Main.dotProduct(normal, direction)), direction);
     }
 }

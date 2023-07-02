@@ -3,7 +3,7 @@ package com.company;
 import java.util.ArrayList;
 
 public class PointLight extends Light{
-    private ArrayList<Double> position;
+    private final ArrayList<Double> position;
     public PointLight(double intensity, ArrayList<Double> position){
         super(intensity);
         this.position = position;
