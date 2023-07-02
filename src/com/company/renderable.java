@@ -9,4 +9,5 @@ public interface renderable {
     public double[] collides(Ray ray);
     public ArrayList<Double> getCenter();
     public int getSpecular();
+    public double getReflective();
 }

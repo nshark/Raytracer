@@ -10,7 +10,7 @@ public class DirectionalLight extends Light{
     }
 
     @Override
-    public double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular) {
-        return computeDirLight(direction,normal,v,specular);
+    public double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<renderable> objects) {
+        return computeDirLight(point, direction,normal,v,specular, objects);
     }
 }

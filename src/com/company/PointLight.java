@@ -10,8 +10,8 @@ public class PointLight extends Light{
     }
 
     @Override
-    public double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular) {
+    public double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<renderable> objects) {
         ArrayList<Double> direction = Main.subVectors(position,point);
-        return computeDirLight(direction,normal,v,specular);
+        return computeDirLight(point,direction,normal,v, specular, objects);
     }
 }

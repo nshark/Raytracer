@@ -10,13 +10,15 @@ public class Sphere implements renderable{
     private final double radius;
     private final Color color;
     private final int specular;
-    public Sphere(double x, double y, double z, double radius, int specular, Color color){
+    private final double reflective;
+    public Sphere(double x, double y, double z, double radius, int specular, double reflective, Color color){
         this.x = x;
         this.y = y;
         this.z = z;
         this.radius = radius;
         this.color = color;
         this.specular = specular;
+        this.reflective = reflective;
     }
 
     @Override
@@ -49,5 +51,10 @@ public class Sphere implements renderable{
     @Override
     public int getSpecular() {
         return (int) specular;
+    }
+
+    @Override
+    public double getReflective() {
+        return this.reflective;
     }
 }
