@@ -88,7 +88,7 @@ public class Main {
             return local_color;
         }
         var reflectedRay = ReflectRay(scaleVector(ray.direction, -1d), normal);
-        var reflected_color = traceRay(new Ray(ray.origin, reflectedRay), epsilon, Double.MAX_VALUE, objects, lights, recursion_depth-1);
+        var reflected_color = traceRay(new Ray(point, reflectedRay), epsilon, Double.MAX_VALUE, objects, lights, recursion_depth-1);
         return lerpColor(local_color, reflected_color, info.collider().getReflective());
     }
     private static Color lerpColor(Color A, Color B, double scalar){
