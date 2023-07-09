@@ -4,15 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 
 public class gui {
-    public final JFrame jFrame;
-    public final Canvas canvas;
-    public Graphics2D g;
+    private JFrame jFrame;
+    private Canvas canvas;
+    private Graphics2D g;
+    public keyListener listener = new keyListener();
     public gui(){
         jFrame = new JFrame("Raytracer");
         canvas = new Canvas();
         jFrame.add(canvas);
         jFrame.setSize(500,500);
         jFrame.setVisible(true);
+        canvas.addKeyListener(listener);
         jFrame.requestFocus();
         canvas.createBufferStrategy(2);
         g = (Graphics2D) canvas.getBufferStrategy().getDrawGraphics();
