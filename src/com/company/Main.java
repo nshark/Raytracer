@@ -3,6 +3,7 @@ package com.company;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class Main {
     public static final double epsilon = 0.001d;
@@ -32,12 +33,44 @@ public class Main {
         lights.add(new PointLight(0.6, new ArrayList<>(List.of(2d, 1d, 0d))));
         lights.add(new DirectionalLight(0.2, new ArrayList<>(List.of(1d, 4d, 4d))));
         while (true) {
-            for (int x = -250; x < canvasWidth / 2; x++) {
-                for (int y = -250; y < canvasHeight / 2; y++) {
-                    Ray ray = new Ray(cameraPos, matrixMultiplication(canvasToViewport(x, y), cameraRot));
-                    Color c = traceRay(ray, 1, Double.MAX_VALUE, objects, lights, 3);
-                    GUI.putPixel(x, y, c);
+            ExecutorService es = Executors.newCachedThreadPool();
+            Future<ArrayList<ArrayList<Color>>> ColorA = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
+                @Override
+                public ArrayList<ArrayList<Color>> call() {
+                    return raytraceSection(-250, -250, 0, 0, objects, lights);
                 }
+            });
+            Future<ArrayList<ArrayList<Color>>> ColorB = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
+                @Override
+                public ArrayList<ArrayList<Color>> call() {
+                    return raytraceSection(0, -250, 250, 0, objects, lights);
+                }
+            });
+            Future<ArrayList<ArrayList<Color>>> ColorC = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
+                @Override
+                public ArrayList<ArrayList<Color>> call() {
+                    return raytraceSection(-250, 0, 0, 250, objects, lights);
+                }
+            });
+            Future<ArrayList<ArrayList<Color>>> ColorD = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
+                @Override
+                public ArrayList<ArrayList<Color>> call() {
+                    return raytraceSection(0, 0, 250, 250, objects, lights);
+                }
+            });
+            es.shutdown();
+            try {
+                es.awaitTermination(1, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                blitArray(ColorA.get(), -250, -250, GUI);
+                blitArray(ColorB.get(), 0, -250, GUI);
+                blitArray(ColorC.get(), -250, 0, GUI);
+                blitArray(ColorD.get(), 0, 0, GUI);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
             GUI.update();
             updateCameraPos(GUI.listener);
@@ -50,6 +83,27 @@ public class Main {
             }*/
             //cameraPos.set(0,cameraPos.get(0)+0.01d);
         }
+    }
+    private static void blitArray(ArrayList<ArrayList<Color>> color, int x1, int y1, gui GUI){
+        for (int i = 0; i < color.size(); i++) {
+            for (int j = 0; j < color.get(0).size(); j++) {
+                GUI.putPixel(i+x1, j+y1,color.get(i).get(j));
+            }
+        }
+    }
+    private static ArrayList<ArrayList<Color>> raytraceSection(int x1, int y1, int x2, int y2, ArrayList<renderable> objects, ArrayList<Light> lights) {
+        ArrayList<ArrayList<Color>> screen = new ArrayList<>();
+        for (int x = x1; x < x2; x++) {
+            ArrayList<Color> screenRow = new ArrayList<>();
+            for (int y = y1; y < y2; y++) {
+                Ray ray = new Ray(cameraPos, matrixMultiplication(canvasToViewport(x, y), cameraRot));
+                Color c = traceRay(ray, 1, Double.MAX_VALUE, objects, lights, 3);
+                screenRow.add(c);
+            }
+            screen.add(screenRow);
+        }
+
+        return screen;
     }
 
     public static ArrayList<Double> canvasToViewport(int x, int y) {
