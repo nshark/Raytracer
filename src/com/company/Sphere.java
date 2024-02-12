@@ -27,7 +27,7 @@ public class Sphere implements renderable{
     }
     @Override
     public double[] collides(Ray ray) {
-        ArrayList<Double> oc = new ArrayList(List.of(ray.origin.get(0) - x, ray.origin.get(1) - y, ray.origin.get(2) - z));
+        double[] oc = new double[]{ray.origin[0] - x, ray.origin[1] - y, ray.origin[2] - z};
         double k1 = Main.dotProduct(ray.direction, ray.direction);
         double k2 = 2*Main.dotProduct(oc, ray.direction);
         double k3 = Main.dotProduct(oc, oc) - this.radius*this.radius;
@@ -44,13 +44,13 @@ public class Sphere implements renderable{
     }
 
     @Override
-    public ArrayList<Double> getCenter() {
-        return new ArrayList<Double>(List.of(x,y,z));
+    public double[] getNormal(double[] point, Ray ray) {
+        return Main.subVectors(point, new double[]{x,y,z});
     }
 
     @Override
     public int getSpecular() {
-        return (int) specular;
+        return specular;
     }
 
     @Override

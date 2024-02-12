@@ -7,11 +7,11 @@ public class Light {
     public Light(double intensity){
         this.intensity = intensity;
     }
-    public double computeLighting(ArrayList<Double> point, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<renderable> objects){
+    public double computeLighting(double[] point, double[] normal, double[] v, double specular, ArrayList<renderable> objects){
         return intensity;
     }
-    protected double computeDirLight(ArrayList<Double> point, ArrayList<Double> direction, ArrayList<Double> normal, ArrayList<Double> v, double specular, ArrayList<renderable> objects){
-        intersectionInfo shadowInfo = Main.closestIntersection(new Ray(point, direction), Main.epsilon, Double.MAX_VALUE, objects);
+    protected double computeDirLight(double[] point, double[] direction, double[] normal, double[] v, double specular, ArrayList<renderable> objects){
+        intersectionInfo shadowInfo = Main.isInShadow(new Ray(point, direction), Main.epsilon, Double.MAX_VALUE, objects);
         if (shadowInfo.collider() != null){
             return 0;
         }
@@ -21,7 +21,7 @@ public class Light {
             i += intensity *  n_dot_l/(Main.magnitude(normal) * Main.magnitude(direction));
         }
         if (specular!=-1){
-            ArrayList<Double> R = Main.ReflectRay(direction, normal);
+            double[] R = Main.ReflectRay(direction, normal);
             double r_dot_v = Main.dotProduct(R,v);
             if (r_dot_v>0){
                 i+=intensity*Math.pow((r_dot_v/(Main.magnitude(R)*Main.magnitude(v))),specular);

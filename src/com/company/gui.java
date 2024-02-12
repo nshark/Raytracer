@@ -4,12 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 
 public class gui {
-    private JFrame jFrame;
-    private Canvas canvas;
+    private final Canvas canvas;
     private Graphics2D g;
     public keyListener listener = new keyListener();
     public gui(){
-        jFrame = new JFrame("Raytracer");
+        JFrame jFrame = new JFrame("Raytracer");
         canvas = new Canvas();
         jFrame.add(canvas);
         jFrame.setSize(500,500);
