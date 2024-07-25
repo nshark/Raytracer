@@ -1,11 +1,8 @@
 package com.company;
 
-import jdk.jfr.Description;
-import jdk.jfr.Label;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
 
 public class Main {
@@ -17,11 +14,10 @@ public class Main {
     private static final double viewpointHeight = 1;
     private static final double moveAmount = 0.05;
     private static final double rotAmount = 0.05;
-    private static final double[] cameraPos = {0, 0, 0};
+    private static double[] cameraPos = {0, 0, 0};
     private static double[][] cameraRot = {{1d, 0d, 0d}, {0d, 1d, 0d}, {0d, 0d, 1d}};
     private static final double[] rotVector = {0d, 0d, 0d};
 
-    //private static double[][] cameraRot = {{1d,0d,0d},{0d, Math.cos(Math.toRadians(45)), -1d*Math.sin(Math.toRadians(45))},{0d,Math.sin(Math.toRadians(45)),Math.cos(Math.toRadians(45))}};
     public static void main(String[] args) {
         // write your code here
         cameraRot = rotationVecToRotMatrix(rotVector);
@@ -31,40 +27,22 @@ public class Main {
         objects.add(new Sphere(0, -1, 3, 1, 500, 0.2, Color.RED));
         objects.add(new Sphere(2, 0, 4, 1, 500, 0.3, Color.BLUE));
         objects.add(new Sphere(-2, 0, 4, 1, 10, 0.4, Color.GREEN));
-        objects.add(new Triangle(new double[][]{{0d, 0d, 1d}, {1d, 1d, 1d}, {-1d, 1d, 1d}},500,0.4, Color.MAGENTA));
+        objects.add(new Triangle(new double[][]{{0d, 0d, 1d}, {1d, 1d, 1d}, {-1d, 1d, 1d}}, 500, 0.4, Color.MAGENTA));
         objects.add(new Sphere(0, -5001, 0, 5000, 1000, 0.1, Color.YELLOW));
         lights.add(new Light(0.2));
         lights.add(new PointLight(0.6, new double[]{2d, 1d, 0d}));
         lights.add(new DirectionalLight(0.2, new double[]{1d, 4d, 4d}));
         while (true) {
             ExecutorService es = Executors.newCachedThreadPool();
-            Future<ArrayList<ArrayList<Color>>> ColorA = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
-                @Override
-                public ArrayList<ArrayList<Color>> call() {
-                    return raytraceSection(-250, -250, 0, 0, objects, lights);
-                }
-            });
-            Future<ArrayList<ArrayList<Color>>> ColorB = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
-                @Override
-                public ArrayList<ArrayList<Color>> call() {
-                    return raytraceSection(0, -250, 250, 0, objects, lights);
-                }
-            });
-            Future<ArrayList<ArrayList<Color>>> ColorC = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
-                @Override
-                public ArrayList<ArrayList<Color>> call() {
-                    return raytraceSection(-250, 0, 0, 250, objects, lights);
-                }
-            });
-            Future<ArrayList<ArrayList<Color>>> ColorD = es.submit(new Callable<ArrayList<ArrayList<Color>>>() {
-                @Override
-                public ArrayList<ArrayList<Color>> call() {
-                    return raytraceSection(0, 0, 250, 250, objects, lights);
-                }
-            });
+            Future<ArrayList<ArrayList<Color>>> ColorA = es.submit(() -> raytraceSection(-250, -250, 0, 0, objects, lights));
+            Future<ArrayList<ArrayList<Color>>> ColorB = es.submit(() -> raytraceSection(0, -250, 250, 0, objects, lights));
+            Future<ArrayList<ArrayList<Color>>> ColorC = es.submit(() -> raytraceSection(-250, 0, 0, 250, objects, lights));
+            Future<ArrayList<ArrayList<Color>>> ColorD = es.submit(() -> raytraceSection(0, 0, 250, 250, objects, lights));
             es.shutdown();
             try {
-                es.awaitTermination(1, TimeUnit.MINUTES);
+                if(es.awaitTermination(1, TimeUnit.MINUTES)){
+                    throw(new RuntimeException("Raytracing timed out"));
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -74,27 +52,22 @@ public class Main {
                 blitArray(ColorC.get(), -250, 0, GUI);
                 blitArray(ColorD.get(), 0, 0, GUI);
             } catch (InterruptedException | ExecutionException e) {
+                System.out.println("Failed to blit pixels");
                 e.printStackTrace();
             }
             GUI.update();
             updateCameraPos(GUI.listener);
-            /*System.out.println(Arrays.toString(GUI.listener.directionalKeys));
-            System.out.println(Arrays.toString(GUI.listener.rotationalKeys));
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }*/
-            //cameraPos.set(0,cameraPos.get(0)+0.01d);
         }
     }
-    private static void blitArray(ArrayList<ArrayList<Color>> color, int x1, int y1, gui GUI){
+
+    private static void blitArray(ArrayList<ArrayList<Color>> color, int x1, int y1, gui GUI) {
         for (int i = 0; i < color.size(); i++) {
             for (int j = 0; j < color.get(0).size(); j++) {
-                GUI.putPixel(i+x1, j+y1,color.get(i).get(j));
+                GUI.putPixel(i + x1, j + y1, color.get(i).get(j));
             }
         }
     }
+
     private static ArrayList<ArrayList<Color>> raytraceSection(int x1, int y1, int x2, int y2, ArrayList<renderable> objects, ArrayList<Light> lights) {
         ArrayList<ArrayList<Color>> screen = new ArrayList<>();
         for (int x = x1; x < x2; x++) {
@@ -135,13 +108,15 @@ public class Main {
         }
         return toReturn;
     }
-    public static double[] crossProduct(double[] v, double[] w){
+
+    public static double[] crossProduct(double[] v, double[] w) {
         double[] product = new double[3];
-        product[0] = v[1]*w[2] - v[2]*w[1];
-        product[1] = v[2]*w[0]- v[0]*w[2];
-        product[2] = v[0]*w[1] - v[1]*w[0];
+        product[0] = v[1] * w[2] - v[2] * w[1];
+        product[1] = v[2] * w[0] - v[0] * w[2];
+        product[2] = v[0] * w[1] - v[1] * w[0];
         return product;
     }
+
     public static double[] addVectors(double[] v1, double[] v2) {
         return new double[]{v1[0] + v2[0],
                 v1[1] + v2[1],
@@ -205,6 +180,7 @@ public class Main {
     private static Color reconstructColor(double[] A) {
         return new Color((int) Math.round(A[0]), (int) Math.round(A[1]), (int) Math.round(A[2]));
     }
+
     public static intersectionInfo closestIntersection(Ray ray, double min_t, double max_t, ArrayList<renderable> objects) {
         double closest_t = Double.MAX_VALUE;
         renderable closestObject = null;
@@ -214,7 +190,7 @@ public class Main {
                 closest_t = ts[0];
                 closestObject = s;
             }
-            if (ts.length>1) {
+            if (ts.length > 1) {
                 if (ts[1] < closest_t && ts[1] > min_t && ts[1] < max_t) {
                     closest_t = ts[1];
                     closestObject = s;
@@ -236,7 +212,7 @@ public class Main {
                 closest_t = ts[0];
                 closestObject = s;
             }
-            if (ts.length>1) {
+            if (ts.length > 1) {
                 if (ts[1] < closest_t && ts[1] > min_t && ts[1] < max_t) {
                     closest_t = ts[1];
                     closestObject = s;
@@ -248,6 +224,7 @@ public class Main {
         }
         return new intersectionInfo(closest_t, null);
     }
+
     public static double computeLighting(double[] point, double[] normal, double[] v, double specular, ArrayList<Light> lights, ArrayList<renderable> objects) {
         double returnValue = 0;
         for (Light l : lights) {
@@ -271,8 +248,10 @@ public class Main {
             if (dirKeys[i]) {
                 int axis = i / 2;
                 int sign = (i % 2) * 2 - 1;
-
-                cameraPos[axis] = cameraPos[axis] + moveAmount * sign;
+                double[] movVector = {0, 0, 0};
+                movVector[axis] = sign * moveAmount;
+                movVector = matrixMultiplication(movVector, cameraRot);
+                cameraPos = addVectors(cameraPos, movVector);
             }
         }
         boolean shouldRecompute = false;
@@ -284,7 +263,7 @@ public class Main {
                 rotVector[axis] = rotVector[axis] + rotAmount * sign;
             }
         }
-        if (shouldRecompute){
+        if (shouldRecompute) {
             cameraRot = rotationVecToRotMatrix(rotVector);
         }
     }
@@ -293,19 +272,18 @@ public class Main {
         double a = rVector[0];
         double b = rVector[1];
         double c = rVector[2];
-        double[][] rotMatrix =
-                {{Math.cos(b) * Math.cos(c),
+        return new double[][]{{Math.cos(b) * Math.cos(c),
                         Math.sin(a) * Math.sin(b) * Math.cos(c) - Math.cos(a) * Math.sin(c),
                         Math.cos(a) * Math.sin(b) * Math.cos(c) + Math.sin(a) * Math.sin(c)},
-                {Math.cos(b) * Math.sin(c),
-                        Math.sin(a) * Math.sin(b) * Math.sin(c) + Math.cos(a) * Math.cos(c),
-                        Math.cos(a) * Math.sin(b) * Math.sin(c) - Math.sin(a) * Math.cos(c)},
-                {-1 * Math.sin(b),
-                        Math.sin(a) * Math.cos(b),
-                        Math.cos(a) * Math.cos(b)}};
-        return rotMatrix;
+                        {Math.cos(b) * Math.sin(c),
+                                Math.sin(a) * Math.sin(b) * Math.sin(c) + Math.cos(a) * Math.cos(c),
+                                Math.cos(a) * Math.sin(b) * Math.sin(c) - Math.sin(a) * Math.cos(c)},
+                        {-1 * Math.sin(b),
+                                Math.sin(a) * Math.cos(b),
+                                Math.cos(a) * Math.cos(b)}};
     }
-    public static double determinant(double[] v1, double[] v2, double[] v3){
+
+    public static double determinant(double[] v1, double[] v2, double[] v3) {
         return v1[0] * v2[1] * v3[2] + v1[1] * v2[2] * v3[0] + v1[2] * v2[0] * v3[1] -
                 (v1[2] * v2[1] * v3[0] + v1[1] * v2[0] * v3[2] + v1[0] * v2[2] * v3[1]);
     }
